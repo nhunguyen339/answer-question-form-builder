@@ -1,0 +1,45 @@
+<div class="border p-4 m-4 w-40 rounded">
+  <div class="fs-2 mb-3">Preview Your Answer</div>
+  <ng-container *ngIf="fields && fields.length > 0">
+    <div *ngFor="let field of fields" class="mb-3 pb-3 border-bottom">
+      <div class="fw-bold fs-5">
+        {{ field.label }} {{ field.is_required ? "*" : "" }}
+      </div>
+      <div [ngSwitch]="field.type">
+        <div *ngSwitchCase="questionTypes.CHECKBOX_LIST">
+          <div *ngFor="let answer of field.answer">
+            <ng-container *ngIf="answer.value">{{ answer.label }}</ng-container>
+          </div>
+
+          <ng-container
+            *ngIf="field.allow_specify_answer && field.specify_answer"
+          >
+            <div class="mt-2">
+              <div class="fw-bold">Specific Answer:</div>
+              <div>{{ field.specify_answer }}</div>
+            </div>
+          </ng-container>
+        </div>
+        <div *ngSwitchCase="questionTypes.PARAGRAPH">
+          <div *ngIf="field.answer">{{ field.answer }}</div>
+          <div *ngIf="!field.answer" class="text-warning">
+            Your answer is empty.
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div *ngIf="!fields || fields.length === 0">
+    <div class="mb-3">
+      Your question/answer is empty, please build your question/answer!
+    </div>
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="navigateToFormBuilder()"
+    >
+      Back to Form Builder
+    </button>
+  </div>
+</div>

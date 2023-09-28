@@ -1,0 +1,265 @@
+<!-- Button trigger modal -->
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  id="staticBackdrop"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
+  tabindex="-1"
+  aria-labelledby="staticBackdropLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Add New Question</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+          #closeModalEl
+          (click)="closeModal()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <ng-container *ngIf="!building_form_type.value">
+          <div class="mb-3 fw-bold">Please select your question type !</div>
+          <ul class="list-group">
+            <li
+              class="list-group-item"
+              (click)="onSelectType(questionType.value)"
+              *ngFor="let questionType of questionTypes"
+            >
+              {{ questionType.name }}
+            </li>
+          </ul>
+        </ng-container>
+        <ng-container *ngIf="building_form_type.value">
+          <form [formGroup]="buildingForm">
+            <div [ngSwitch]="building_form_type.value">
+              <div class="mb-3">
+                <div class="fw-bold fs-5 mb-2 fs-5">
+                  Question Type:
+                  {{ isParagraphType ? "Paragraph" : "Checkbox List" }}
+                </div>
+                <div class="mb-2">
+                  <label for="form-building-paragraph" class="form-label"
+                    >Question:</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="form-building-paragraph"
+                    formControlName="label"
+                  />
+                </div>
+              </div>
+              <ng-container *ngSwitchCase="questionTypeEnum.CHECKBOX_LIST">
+                <label for="new-input-checkbox-name" class="form-label mb-2"
+                  >Input Checkbox Option Name:</label
+                >
+                <ng-container formArrayName="checkbox_list">
+                  <div
+                    class="mb-3"
+                    *ngFor="
+                      let checkbox of building_form_checkbox_list.controls;
+                      index as i
+                    "
+                  >
+                    <ng-container [formGroupName]="i">
+                      <div class="d-flex justify-content-between">
+                        <input formControlName="name" class="w-90" />
+                        <button
+                          type="button"
+                          class="btn btn-light"
+                          (click)="removeCheckboxItem(i)"
+                        >
+                          x
+                        </button>
+                      </div>
+                    </ng-container>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    (click)="addNewCheckboxAnswer()"
+                  >
+                    + Add Answer Option
+                  </button>
+                </ng-container>
+
+                <div class="form-check mt-3">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    value=""
+                    formControlName="allow_specify_answer"
+                    id="allow-specify-answer"
+                  />
+                  <label class="form-check-label" for="allow-specify-answer">
+                    Allow user to specify their own answer
+                  </label>
+                </div>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="questionTypeEnum.PARAGRAPH">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    formControlName="is_required"
+                    id="form-building-is-required"
+                  />
+                  <label
+                    class="form-check-label"
+                    for="form-building-is-required"
+                  >
+                    This field is required
+                  </label>
+                </div>
+              </ng-container>
+            </div>
+          </form>
+        </ng-container>
+      </div>
+      <div class="modal-footer">
+        <button
+          (click)="closeModal()"
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+        >
+          Close
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="!isBuildingFormValid"
+          (click)="submit()"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form [formGroup]="questionsForm" class="border p-4 m-4 w-40 rounded">
+  <div class="fs-2 mb-3">Build Your Question</div>
+
+  <ng-container formArrayName="field_array">
+    <div
+      class="mb-3 border-bottom"
+      *ngFor="
+        let field of questions_form_field_array.controls;
+        index as fieldIndex
+      "
+    >
+      <ng-container [formGroupName]="fieldIndex">
+        <label
+          for="new-input-checkbox-name"
+          class="form-label mb-2 fw-bold fs-5"
+        >
+          {{ field.value.label }}
+          {{ field.value.is_required ? "*" : "" }}</label
+        >
+        <div [ngSwitch]="field.value.type" class="mb-2">
+          <ng-container *ngSwitchCase="questionTypeEnum.CHECKBOX_LIST">
+            <ng-container formArrayName="answer">
+              <div
+                class="mb-1"
+                *ngFor="
+                  let checkbox of getCheckboxList(field).controls;
+                  index as checkboxIndex
+                "
+              >
+                <ng-container [formGroupName]="checkboxIndex">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      formControlName="value"
+                      id="checkbox-option-{{ checkboxIndex }}"
+                    />
+                    <label
+                      class="form-check-label"
+                      for="checkbox-option-{{ checkboxIndex }}"
+                    >
+                      {{ checkbox.value.label }}
+                    </label>
+                  </div>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="field.value.display_allow_specify_answer">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  formControlName="allow_specify_answer"
+                  id="checkbox-custom-option"
+                />
+                <label class="form-check-label" for="checkbox-custom-option">
+                  Other
+                </label>
+              </div>
+              <div class="mb-3" *ngIf="field.value.allow_specify_answer">
+                <label for="specify-answer" class="form-label"
+                  >Please enter your other answer:</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="specify-answer"
+                  formControlName="specify_answer"
+                />
+              </div>
+            </ng-container>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="questionTypeEnum.PARAGRAPH">
+            <div class="mb-3 has-validation">
+              <input
+                type="text"
+                class="form-control"
+                [class.is-invalid]="getAnswerFieldValid(field)"
+                id="question-paragraph"
+                formControlName="answer"
+              />
+              <div *ngIf="getAnswerFieldValid(field)">
+                <div
+                  *ngIf="field.get('answer')?.errors?.['required']"
+                  class="mt-2 text-danger"
+                >
+                  Password is required.
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+    </div>
+
+    <button
+      #openModalEl
+      type="button"
+      class="btn btn-secondary"
+      data-bs-toggle="modal"
+      data-bs-target="#staticBackdrop"
+    >
+      Add New Question
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary mx-3"
+      (click)="navigateToPreviewAnswer()"
+      [disabled]="questionsForm.invalid"
+    >
+      Preview Answers
+    </button>
+  </ng-container>
+</form>
